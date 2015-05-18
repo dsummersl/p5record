@@ -2,6 +2,16 @@ if (Meteor.isClient) {
   // counter starts at 0
   Session.setDefault('counter', 0);
 
+  Tracker.autorun(function() {
+    var p5loaded = Session.get('p5.setup');
+    if (p5loaded) {
+      loadSound('/beat.mp3',function(beat) {
+        beat.loop();
+      }, function(percent) {
+      });
+    }
+  });
+
   Template.hello.helpers({
     counter: function () {
       return Session.get('counter');
