@@ -1,21 +1,13 @@
 <head>
   <title>eyeo</title>
-  <!-- TODO make p5 into a module: https://github.com/MeteorCommunity/discussions/issues/14 -->
-  <script>
-    // TODO put in session data for the other p5 type events.
-    function setup() {
-      Session.set('p5.setup',true);
-    }
-  </script>
 </head>
 
 <body>
-  <h1>Welcome to Meteor!</h1>
+  <h1>All together now</h1>
 
-  {{> hello}}
+  {{> p5}}
 </body>
 
-<template name="hello">
-  <button>Click Me</button>
-  <p>You've pressed the button {{counter}} times.</p>
+<template name="p5">
+  <div id="p5"></div>
 </template>
