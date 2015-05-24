@@ -8,15 +8,15 @@ if (Meteor.isClient) {
   Template.p5.onCreated(function() {
     var angle = 1;
     var speed = 1;
-    var acceleration = 0;
     var beat;
-    const LOW_SPEED = 0;
-    const HIGH_SPEED = 1.5;
-    const LOW_ACCELERATION = -0.5;
-    const HIGH_ACCELERATION = 0.5;
-    const ACCELERATION_DECAY = 0.3;
+    var going_forward = true;
+    const LOW_SPEED = -1.3;
+    const HIGH_SPEED = 1.3;
+    const DECELERATION = 0.2;
     const FRAME_RATE = 30;
     var setupTransforms = function(p) {
+      going_forward = speed >= 0;
+
       p.push();
       p.noStroke();
       p.translate(p.width/2,p.height/2);
@@ -36,26 +36,27 @@ if (Meteor.isClient) {
       p.pop();
 
       angle += speed / FRAME_RATE;
-      speed = p.constrain(speed + acceleration / FRAME_RATE,LOW_SPEED,HIGH_SPEED);
-      acceleration = p.constrain(
-        acceleration - ACCELERATION_DECAY / FRAME_RATE,
-        LOW_ACCELERATION,
-        HIGH_ACCELERATION
-      );
-      if (speed === 0) {
-        acceleration = 0;
+      speed = p.constrain(speed - Math.sign(speed)*DECELERATION / FRAME_RATE,LOW_SPEED,HIGH_SPEED);
+      if (speed > 0 && !going_forward) {
+        speed = 0;
+      }
+      if (speed < 0 && going_forward) {
+        speed = 0;
       }
 
       beat.rate(speed);
-      // console.log("|speed = "+ speed);
       if (speed !== 0 && !beat.isPlaying()) {
-        beat.stop();
-        beat.play();
+        try {
+          beat.play();
+        } catch(err) {
+          beat.stop();
+          beat.play();
+        }
       }
     };
     var s = function(p) {
       p.preload = function() {
-        beat = p.loadSound('/0223-ocean.mp3');
+        beat = p.loadSound('/0619-moon.mp3');
       };
       p.setup = function() {
         var canvas = p.createCanvas(500,500);
@@ -67,8 +68,7 @@ if (Meteor.isClient) {
         setupTransforms(p);
       };
       p.mouseWheel = function(event) {
-        speed += 0.03*Math.sign(event.wheelDelta);
-        console.log("|speed = "+ speed);
+        speed += 0.05*Math.sign(event.wheelDelta);
       };
       Template.instance().p = p;
     };
