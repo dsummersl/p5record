@@ -6,17 +6,19 @@ if (Meteor.isClient) {
   });
 
   Template.p5.onCreated(function() {
-    var angle = 0;
-    var speed = 0;
-    var beat;
-    var going_forward = true;
     const LOW_SPEED = -1.2;
     const HIGH_SPEED = 1.2;
     const DECELERATION = 0.15;
     const FRAME_RATE = 30;
     const TIMEOUT = 500;
-    Session.set('last_direction', 1);
-    Session.set('last_event', Date.now()-TIMEOUT);
+
+    var angle = 0;
+    var speed = 0;
+    var beat;
+    var going_forward = true;
+    var last_direction = 1;
+    var last_event = Date.now()-TIMEOUT;
+
     var setupTransforms = function(p) {
       going_forward = speed >= 0;
 
@@ -37,9 +39,9 @@ if (Meteor.isClient) {
       p.fill(p.color(0));
       p.text("Light of", 38, 0);
       p.text("the Moon", 33, 10);
-      if (Session.get('last_event') > Date.now()-TIMEOUT) {
+      if (last_event > Date.now()-TIMEOUT) {
         p.fill(p.color(247,73,0));
-        p.triangle(45,11*Session.get('last_direction'),45+20,11*Session.get('last_direction'),45+20/2,40*Session.get('last_direction'));
+        p.triangle(45,11*last_direction,45+20,11*last_direction,45+20/2,40*last_direction);
       }
       p.pop();
 
@@ -82,8 +84,8 @@ if (Meteor.isClient) {
       };
       p.mouseWheel = function(event) {
         speed += 0.05*Math.sign(event.wheelDelta);
-        Session.set('last_event', Date.now());
-        Session.set('last_direction', Math.sign(event.wheelDelta));
+        last_event = Date.now();
+        last_direction = Math.sign(event.wheelDelta);
       };
       p.keyPressed = function() {
         if (p.keyCode === p.RIGHT_ARROW || p.keyCode === p.DOWN_ARROW) {
@@ -97,18 +99,23 @@ if (Meteor.isClient) {
           });
         }
       };
-      Template.instance().p = p;
     };
     new p5(s,'p5');
   });
   Template.p5.helpers({
     text: function() {
-      return Session.get('last_event');
+      return last_event;
     }
   })
 }
 
 if (Meteor.isServer) {
+  // Listen to incoming HTTP requests, can only be used on the server
+  WebApp.connectHandlers.use('/0619-moon.mp3', function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    return next();
+  });
+
   Meteor.publish('djSubscription', () => DJs.find());
   DJs.allow({
     insert: (id, dj) => true,
